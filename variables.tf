@@ -9,10 +9,17 @@ variable "aws_region" {
 }
 
 variable "amis" {
-    description = "AMIs by region"
-    default = {
-        us-west-2 = "ami-32d8124a" # Amazon Linux Free Tier
-    }
+  description = "AMIs by region"
+  default = {
+    us-west-2 = "ami-32d8124a" # Amazon Linux Free Tier
+  }
+}
+
+variable "vpc_amis" {
+  description = "VPC AMIs by region"
+  default = {
+    us-west-2 = "ami-0b707a72"
+  }
 }
 
 variable "app_port" {
