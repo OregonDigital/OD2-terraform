@@ -1,6 +1,6 @@
 
 resource "aws_security_group" "web" {
-  name = "vpc web"
+  name = "${var.application_name} web server"
   ingress { # Custom port for the application, maybe.
     from_port = "${var.app_port}"
     to_port = "${var.app_port}"
@@ -51,12 +51,18 @@ resource "aws_security_group" "web" {
   }
   vpc_id = "${aws_vpc.default.id}"
   tags {
-    Name = "web-security-group"
+    Name = "${var.application_name} web server"
   }
 }
 
+# File must be a text/* content-type, see/update metadata for object in S3
+data "aws_s3_bucket_object" "local_env" {
+  bucket = "${var.aws_s3_bucket_name}"
+  key    = "data0/hydra/shared/config/local_env.yml"
+}
+
 resource "aws_instance" "web" {
-  ami = "${lookup(var.amis, var.aws_region)}"
+  ami = "${lookup(var.web_amis, var.aws_region)}"
   instance_type = "t2.micro"
   availability_zone = "us-west-2a"
   subnet_id = "${aws_subnet.us-west-2a-public.id}"
@@ -67,12 +73,10 @@ resource "aws_instance" "web" {
   user_data = <<-EOF
               #!/bin/bash
               sudo yum update -y
-              sudo yum install -y busybox
-              echo "ETS Terraformed shizniz" > index.html
-              sudo nohup busybox httpd -f -p "${var.app_port}" &
+              echo "${data.aws_s3_bucket_object.local_env.body}" >> /data0/hydra/shared/config/local_env.yml
               EOF
   tags {
-    Name = "web-server"
+    Name = "${var.application_name} web server"
   }
 }
 

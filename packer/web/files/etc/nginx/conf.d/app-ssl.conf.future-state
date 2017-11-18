@@ -1,0 +1,99 @@
+ upstream hydra_ssl_server {
+   # fail_timeout=0 means we always retry an upstream even if it failed
+   # to return a good HTTP response (in case the Unicorn master nukes a
+   # single worker for timing out).
+
+   # for UNIX domain socket setups:
+   server unix:/data0/hydra/shared/sockets/puma.sock fail_timeout=0;
+
+   # for TCP setups, point these to your backend servers
+   # server 127.0.0.1:5000 fail_timeout=0;
+   # server 192.168.0.8:8080 fail_timeout=0;
+   # server 192.168.0.9:8080 fail_timeout=0;
+ }
+
+ server {
+   # enable one of the following if you're on Linux or FreeBSD
+   listen 443 ssl http2; # for Linux
+   # listen 80 default accept_filter=httpready; # for FreeBSD
+
+   # If you have IPv6, you'll likely want to have two separate listeners.
+   # One on IPv4 only (the default), and another on IPv6 only instead
+   # of a single dual-stack listener.  A dual-stack listener will make
+   # for ugly IPv4 addresses in $remote_addr (e.g ":ffff:10.0.0.1"
+   # instead of just "10.0.0.1") and potentially trigger bugs in
+   # some software.
+   # listen [::]:80 ipv6only=on; # deferred or accept_filter recommended
+
+   client_max_body_size 4G;
+   proxy_read_timeout 600s;
+   client_body_temp_path /data0/hydra/shared/tmp/nginx/client_temp 1 2;
+   #server_name blah;
+
+   # ~2 seconds is often enough for most folks to parse HTML/CSS and
+   # retrieve needed images/icons/frames, connections are cheap in
+   # nginx so increasing this is generally safe...
+   keepalive_timeout 5;
+
+   # path for static files
+   root /data0/hydra/current/public;
+
+   # SSL
+   ssl                     on;
+   ssl_certificate         ssl/chained.crt;
+   ssl_certificate_key     ssl/server.key;
+   ssl_session_timeout     5m;
+   ssl_session_cache       shared:SSL:50m;
+   ssl_session_tickets     on;
+   ssl_protocols           TLSv1 TLSv1.1 TLSv1.2;
+   ssl_ciphers             'ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256
+:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES12
+8-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:ECDHE-ECDSA-DES-CBC3-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-
+CBC3-SHA:!DSS';
+   ssl_prefer_server_ciphers on;
+   ssl_stapling on;
+   ssl_stapling_verify on;
+   ssl_dhparam /etc/nginx/dhparam.pem;
+
+   try_files $uri @app;
+
+   # Turn off gzip to support etags
+   gzip on;
+   location @app {
+     # an HTTP header important enough to have its own Wikipedia entry:
+     #   http://en.wikipedia.org/wiki/X-Forwarded-For
+     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+     # enable this if you forward HTTPS traffic to unicorn,
+     # this helps Rack set the proper URL scheme for doing redirects:
+     # proxy_set_header X-Forwarded-Proto $scheme;
+
+     # pass the Host: header from the client right along so redirects
+     # can be set properly within the Rack application
+     proxy_set_header Host $http_host;
+
+     # we don't want nginx trying to do something clever with
+     # redirects, we set the Host: header above already.
+     proxy_redirect off;
+
+     # set "proxy_buffering off" *only* for Rainbows! when doing
+     # Comet/long-poll/streaming.  It's also safe to set if you're using
+     # only serving fast clients with Unicorn + nginx, but not slow
+     # clients.  You normally want nginx to buffer responses to slow
+     # clients, even with Rails 3.1 streaming because otherwise a slow
+     # client can become a bottleneck of Unicorn.
+     #
+     # The Rack application may also set "X-Accel-Buffering (yes|no)"
+     # in the response headers do disable/enable buffering on a
+     # per-response basis.
+     # proxy_buffering off;
+
+     proxy_pass http://hydra_ssl_server;
+   }
+
+   # Rails error pages
+   error_page 500 502 503 504 /500.html;
+   location = /500.html {
+     root /data0/hydra/current/public;
+   }
+ }
