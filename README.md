@@ -1,5 +1,19 @@
 # OD2 Packer and Terraform
 
+## Setup notes
+- Create your AWS credentials file :  `mkdir ~/.aws && vim ~/.aws/credentials`
+```
+[default]
+aws_access_key_id = "BOBROSS"
+aws_secret_access_key = "BOBROSS"
+```
+- Set permissions to credentials file `chmod 600 ~/.aws/credentials`
+- Copy the Terraform and Packer example variable files and populate them
+```
+$cp terraform.tfvars.example terraform.tfvars
+$cp packer/variables.json.example packer/variables.json
+```
+
 ## Release process
 - Run Packer to create a new AMI
   - Capture the newly created AMI ID
