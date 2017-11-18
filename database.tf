@@ -1,5 +1,5 @@
 resource "aws_security_group" "db" {
-  name = "vpc_db"
+  name = "${var.application_name} databases"
   description = "Allow incoming database connections."
 
   ingress { # Postgres
@@ -38,12 +38,12 @@ resource "aws_security_group" "db" {
   vpc_id = "${aws_vpc.default.id}"
 
   tags {
-    Name = "database-security-group"
+    Name = "${var.application_name} databases"
   }
 }
 
 resource "aws_instance" "db" {
-  ami = "${lookup(var.amis, var.aws_region)}"
+  ami = "${lookup(var.db_amis, var.aws_region)}"
   availability_zone = "us-west-2a"
   instance_type = "t2.micro"
   key_name = "${var.aws_key_name}"
@@ -55,7 +55,7 @@ resource "aws_instance" "db" {
               sudo yum update -y
               EOF
   tags {
-    Name = "db-server"
+    Name = "${var.application_name} database"
   }
 }
 

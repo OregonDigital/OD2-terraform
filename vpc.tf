@@ -2,7 +2,7 @@ resource "aws_vpc" "default" {
   cidr_block = "${var.vpc_cidr}"
   enable_dns_hostnames = true
   tags {
-  Name = "terraform-aws-vpc"
+    Name = "${var.application_name} vpc"
   }
 }
 
@@ -14,7 +14,7 @@ resource "aws_internet_gateway" "default" {
   NAT Instance
 */
 resource "aws_security_group" "nat" {
-  name = "vpc_nat"
+  name = "${var.application_name} vpc nat"
   description = "Allow traffic to pass from the private subnet to the internet"
 
   ingress {
@@ -70,7 +70,7 @@ resource "aws_security_group" "nat" {
   vpc_id = "${aws_vpc.default.id}"
 
   tags {
-    Name = "nat-security"
+    Name = "${var.application_name} vpc nat"
   }
 }
 
@@ -88,7 +88,7 @@ resource "aws_instance" "nat" {
               sudo yum update -y
               EOF
   tags {
-    Name = "vpc-nat"
+    Name = "${var.application_name} vpc nat"
   }
 }
 
@@ -107,7 +107,7 @@ resource "aws_subnet" "us-west-2a-public" {
   availability_zone = "us-west-2a"
 
   tags {
-    Name = "public-subnet"
+    Name = "${var.application_name} public subnet"
   }
 }
 
@@ -120,7 +120,7 @@ resource "aws_route_table" "us-west-2a-public" {
   }
 
   tags {
-    Name = "public-subnet"
+    Name = "${var.application_name} public subnet"
   }
 }
 
@@ -139,7 +139,7 @@ resource "aws_subnet" "us-west-2a-private" {
   availability_zone = "us-west-2a"
 
   tags {
-    Name = "private-subnet"
+    Name = "${var.application_name} private subnet"
   }
 }
 
@@ -152,7 +152,7 @@ resource "aws_route_table" "us-west-2a-private" {
   }
 
   tags {
-    Name = "private-subnet"
+    Name = "${var.application_name} private subnet"
   }
 }
 
