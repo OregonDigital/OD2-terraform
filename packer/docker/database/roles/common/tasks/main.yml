@@ -1,0 +1,39 @@
+---
+- name: Setup postgres user
+  user:
+    name: '{{ postgresql_admin_user }}'
+    comment: "Container User"
+    shell: /bin/bash
+
+- name: Install package dependencies
+  apt:
+    pkg: '{{ item }}'
+  with_items:
+    - locales
+    - python-boto
+    - python-boto3
+    - nfs-common
+
+- name: Setup en_us.utf8 locale needed for database
+  command: locale-gen en_US.UTF-8
+
+- name: Set default language and locale
+  template:
+    src: etc_default_locale.j2
+    dest: "/etc/default/locale"
+    mode: 0644
+
+- name: Enable PAM
+  shell: echo 'UsePAM yes' >> /etc/ssh/ssh_config
+
+- name: Setup AWS credentials directory
+  file:
+    path: ~/.aws
+    state: directory
+    mode: 0755
+
+- name: Setup AWS credentials
+  template:
+    src: templates/aws_credentials.j2
+    dest: ~/.aws/credentials
+    mode: 0600

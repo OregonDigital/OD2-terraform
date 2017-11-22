@@ -1,0 +1,6 @@
+- hosts: 127.0.0.1
+  user: ubuntu
+  vars_files:
+    - "{{tmp_dir}}/variables.yml"
+  roles:
+    - common

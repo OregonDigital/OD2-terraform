@@ -1,0 +1,58 @@
+---
+- name: Install postgres development libraries
+  apt:
+    pkg: libpq-dev
+
+- name: Application directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: '{{ application_user }}'
+    group: '{{ application_user }}'
+    mode: 0775
+  with_items:
+    - '{{ application_root }}'
+    - '{{ application_shared }}'
+    - '{{ application_shared }}/tmp'
+    - '{{ application_shared }}/tmp/puma'
+    - '{{ application_shared }}/sockets'
+    - '{{ application_shared }}/log'
+
+- name: Application entrypoint
+  template:
+    src: templates/entrypoint.sh.j2
+    dest: '{{ application_entrypoint }}'
+    owner: '{{ application_user }}'
+    group: '{{ application_user }}'
+    mode: 0777
+
+- name: Application start
+  template:
+    src: templates/start.sh.j2
+    dest: '{{ application_start }}'
+    owner: '{{ application_user }}'
+    group: '{{ application_user }}'
+    mode: 0777
+
+- lineinfile:
+    path: /etc/sudoers
+    insertafter: '^Defaults\s+env_reset'
+    line: 'Defaults    env_keep += "SECRET_KEY_BASE"'
+
+- name: Clone
+  git:
+    repo: 'https://github.com/OregonDigital/OD2'
+    dest: "{{ application_root }}"
+  become: true
+  become_user: '{{ application_user }}'
+
+- name: Bundle install
+  shell: bundle install
+  args:
+    executable: /bin/bash
+    chdir: '{{ application_root }}'
+  environment:
+    PATH: '{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}'
+  become: true
+  become_user: '{{ application_user }}'
+  become_method: su

@@ -1,0 +1,41 @@
+---
+- name: Upgrade apt packages
+  apt: upgrade=yes
+       update_cache=yes
+  become: true
+
+- name: Install prerequisite packages that are necessary to compile applications and gems with native extensions
+  apt: pkg={{ item }}
+  with_items:
+    - git
+    - autoconf
+    - build-essential
+    - curl
+    - git
+    - libmysqlclient-dev
+    - openssl
+    - gcc
+    - bison
+    - libssl-dev
+    - libyaml-dev
+    - libreadline6-dev
+    - zlib1g-dev
+    - libncurses5-dev
+    - libffi-dev
+    - libgdbm3
+    - libgdbm-dev
+    - sudo
+    - vim
+    - sysv-rc-conf
+  become: true
+
+- name: Install python-software-properties so the apt_repository module will work properly
+  apt: pkg=python-software-properties
+  become: true
+
+- name: Setup regular user
+  user:
+    name: '{{ application_user }}'
+    comment: "Container User"
+    shell: /bin/bash
+  become: true

@@ -1,0 +1,53 @@
+---
+- block:
+    - name: Clone
+      git:
+        repo: 'https://github.com/rbenv/rbenv'
+        dest: "{{ rbenv_root }}"
+
+    - name: ruby-build | Plugins directory
+      file:
+        path: '{{ rbenv_root }}/plugins'
+        state: directory
+
+    - name: ruby-build | Clone
+      git:
+        repo: 'https://github.com/rbenv/ruby-build.git'
+        dest: '{{ rbenv_root }}/plugins/ruby-build'
+
+    - name: Set rbenv init to profile and bashrc
+      blockinfile:
+        path: '{{ item }}'
+        marker: "# {mark} ANSIBLE MANAGED BLOCK -- RBENV"
+        block: |
+          export RBENV_ROOT="{{ rbenv_root }}"
+          export PATH="/usr/local/bin:$RBENV_ROOT/shims:$RBENV_ROOT/bin:$PATH"
+          eval "$(rbenv init -)"
+      with_items:
+        - ~/.profile
+        - ~/.bashrc
+
+    - name: Create gemrc
+      file:
+        path: /home/{{ application_user }}/.gemrc
+        owner: '{{ application_user }}'
+        group: '{{ application_user }}'
+        state: touch
+
+    - name: Prevent gem installs from generating documentation
+      blockinfile:
+        path: ~/.gemrc
+        block: |
+          gem: --no-document
+  become: true
+  become_user: '{{ application_user }}'
+
+- name: Install Ruby {{ ruby_version }}
+  shell: rbenv install {{ ruby_version }} && rbenv global {{ ruby_version }} && rbenv rehash && gem install bundler
+  args:
+    executable: /bin/bash
+  environment:
+    PATH: '{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}'
+  become: true
+  become_user: '{{ application_user }}'
+  become_method: su

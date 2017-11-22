@@ -1,6 +1,6 @@
-terraform.tfvars
+*terraform.tfvars
 *.tfstate*
-.terraform/*
-packer/variables.json
-packer/web/files_to_upload/*
-!packer/web/files_to_upload/.keep
+*.terraform*
+*variables.json
+*web/files_to_upload/*
+!*web/files_to_upload/.keep

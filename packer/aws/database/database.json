@@ -1,0 +1,55 @@
+{
+  "variables": {
+    "aws_access_key": "{{ env `AWS_ACCESS_KEY` }}",
+    "aws_secret_key": "{{ env `AWS_SECRET_KEY` }}",
+    "aws_subnet_id": "Pass into Packer using (-var 'aws_subnet_id=<String>') : Subnet Id MUST BE on a public subnet for the VPC to build AMI",
+    "aws_security_group_id": "Pass into Packer using (-var 'aws_security_group_id=<String>') : Group MUST HAVE ports 22 (public) and 2049 (private, EFS network)",
+    "vars_file": "variables.yml"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "{{user `aws_region`}}",
+    "subnet_id": "{{user `aws_subnet_id`}}",
+    "security_group_id": "{{user `aws_security_group_id`}}",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "name": "od2-base-*",
+        "root-device-type": "ebs"
+      },
+      "owners": ["608942788372"],
+      "most_recent": true
+    },
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+    "ssh_private_ip": true,
+    "ssh_bastion_agent_auth": true,
+    "ssh_bastion_host": "{{user `ssh_bastion_host`}}",
+    "ssh_bastion_private_key_file": "{{user `ssh_bastion_private_key_file`}}",
+    "ssh_bastion_username": "{{user `ssh_bastion_username`}}",
+    "ami_name": "od2-database-{{timestamp}}"
+  }],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "variables.yml",
+      "destination": "/tmp/variables.yml"
+    },
+    {
+      "type": "ansible-local",
+      "staging_directory": "/tmp/ansible",
+      "playbook_file": "database.yml",
+      "role_paths": [
+        "roles/common",
+        "roles/efs",
+        "roles/ANXS.monit",
+        "roles/ANXS.postgresql"
+      ],
+      "extra_arguments": [
+        "-vvv --extra-vars \"tmp_dir=/tmp aws_access_key={{ user `aws_access_key` }} aws_secret_key={{ user `aws_secret_key` }} aws_region={{ user `aws_region` }} aws_efs_mount_dns_name={{ user `aws_efs_mount_dns_name` }}\""
+      ]
+    }
+  ]
+}
