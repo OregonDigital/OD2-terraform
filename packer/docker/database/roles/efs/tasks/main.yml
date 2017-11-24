@@ -1,0 +1,28 @@
+---
+- name: Create EFS volume
+  efs:
+    state: present
+    name: postgresEFS
+    region: '{{ aws_region }}'
+    tags:
+      name: db efs
+      purpose: file-storage
+    targets:
+        - subnet_id: subnet-e30e4085
+          security_groups: [ "sg-e631239b" ]
+
+  register: result
+
+- name: Create mount point
+  file:
+    path: /efs
+    state: directory
+    mode: 0755
+
+- name: Mount efs
+  mount:
+    name: /efs
+    src: '{{ result.efs.mount_point|replace(".","",1) }}'
+    fstype: nfs4
+    opts: nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,proto=tcp,port=2049
+    state: present

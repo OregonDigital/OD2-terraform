@@ -1,0 +1,47 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "vars_file": "variables.yml"
+  },
+  "builders": [{
+    "type": "docker",
+    "image": "ubuntu:latest",
+    "commit": true
+  }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "apt-get -y update",
+        "apt-get -y install software-properties-common aptitude",
+        "apt-add-repository ppa:ansible/ansible",
+        "apt-get -y update",
+        "apt-get -y install ansible"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "variables.yml",
+      "destination": "/tmp/variables.yml"
+    },
+    {
+      "type": "ansible-local",
+      "staging_directory": "/tmp/ansible",
+      "playbook_file": "base.yml",
+      "role_paths": [
+        "roles/common"
+      ],
+      "extra_arguments": [
+        "--extra-vars \"tmp_dir=/tmp \""
+      ]
+    }
+  ],
+  "post-processors":[
+    {
+      "type": "docker-tag",
+      "repository": "od2/base",
+      "tag": "0.1"
+    }
+  ]
+}

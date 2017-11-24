@@ -1,0 +1,48 @@
+---
+- name: Clone
+  git:
+    repo: 'https://github.com/creationix/nvm'
+    version: '{{ nvm_version }}'
+    dest: "{{ nvm_root }}"
+  become: true
+  become_user: '{{ application_user }}'
+  become_method: su
+
+- name: Install nvm {{ nvm_version }}
+  shell: . {{ nvm_root }}/nvm.sh
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: '{{ application_user }}'
+  become_method: su
+
+- name: Set nvm init to profile and bashrc
+  blockinfile:
+    path: '{{ item }}'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK -- NVM"
+    block: |
+      export NVM_DIR="{{ nvm_root }}"
+      [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+      [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+  with_items:
+    - ~/.profile
+    - ~/.bashrc
+  become: true
+  become_user: '{{ application_user }}'
+  become_method: su
+
+- name: Install node {{ node_version }}
+  shell: '. {{ nvm_root }}/nvm.sh && nvm install {{ node_version }} && nvm alias default {{ node_version }}'
+  args:
+    executable: /bin/bash
+  environment:
+    NVM_DIR: '{{ nvm_root }}'
+  become: true
+  become_user: '{{ application_user }}'
+  become_method: su
+
+- name: Link node
+  file:
+    path: /usr/bin/node
+    src: "{{ nvm_root }}/versions/node/{{ node_version }}/bin/node"
+    state: link

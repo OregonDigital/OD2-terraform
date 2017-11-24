@@ -1,0 +1,49 @@
+{
+  "variables": {
+    "aws_access_key": "{{ env `AWS_ACCESS_KEY` }}",
+    "aws_secret_key": "{{ env `AWS_SECRET_KEY` }}",
+    "aws_region": "{{ env `AWS_REGION` }}",
+    "vars_file": "variables.yml"
+  },
+  "builders": [{
+    "type": "docker",
+    "image": "od2/base:0.1",
+    "commit": true,
+    "pull": false,
+    "changes": [
+      "ENV AWS_ACCESS_KEY {{ user `aws_access_key` }}",
+      "ENV AWS_SECRET_KEY {{ user `aws_secret_key` }}",
+      "ENV AWS_REGION {{ user `aws_region` }}",
+      "EXPOSE 5432",
+      "ENTRYPOINT service postgresql start && /bin/bash"
+    ]
+  }],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "variables.yml",
+      "destination": "/tmp/variables.yml"
+    },
+    {
+      "type": "ansible-local",
+      "staging_directory": "/tmp/ansible",
+      "playbook_file": "database.yml",
+      "role_paths": [
+        "roles/common",
+        "roles/efs",
+        "roles/ANXS.monit",
+        "roles/ANXS.postgresql"
+      ],
+      "extra_arguments": [
+        "-vvv --extra-vars \"tmp_dir=/tmp aws_access_key={{ user `aws_access_key` }} aws_secret_key={{ user `aws_secret_key` }} aws_region={{ user `aws_region` }}\""
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "docker-tag",
+      "repository": "od2/database",
+      "tag": "0.1"
+    }
+  ]
+}

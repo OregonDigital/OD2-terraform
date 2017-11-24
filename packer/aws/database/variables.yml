@@ -1,0 +1,41 @@
+# Monit enabled for Postgres (ANXS.monit)
+monit_protection: true
+
+default_locale: 'en_US.UTF-8'
+
+# Postgres basic settings (ANXS.postgresql)
+postgresql_version: 9.5
+postgresql_locale: 'en_US.UTF-8'
+postgresql_ctype: 'en_US.UTF-8'
+postgresql_encoding: 'UTF-8'
+postgresql_bin_directory: '/usr/lib/postgresql/9.5/bin'
+
+postgresql_admin_user: "postgres"
+postgresql_default_auth_method: "trust"
+
+postgresql_service_enabled: true # should the service be enabled, default is true
+
+postgresql_cluster_name: "main"
+postgresql_cluster_reset: false
+
+postgresql_varlib_directory_name: "postgresql"
+postgresql_data_directory: "/efs/{{ postgresql_varlib_directory_name }}/{{postgresql_version}}/{{postgresql_cluster_name}}"
+
+# List of databases to be created (optional)
+# Note: for more flexibility with extensions use the postgresql_database_extensions setting.
+postgresql_databases:
+  - name: postgres
+    owner: postgres          # optional; specify the owner of the database
+    hstore: yes         # flag to install the hstore extension on this database (yes/no)
+    uuid_ossp: yes      # flag to install the uuid-ossp extension on this database (yes/no)
+    citext: yes         # flag to install the citext extension on this database (yes/no)
+
+postgresql_users:
+  - name: postgres
+
+# List of user privileges to be applied (optional)
+postgresql_user_privileges:
+  - name: postgres                   # user name
+    db: postgres                  # database
+    priv: "ALL"                 # privilege string format: example: INSERT,UPDATE/table:SELECT/anothertable:ALL
+    role_attr_flags: "CREATEDB" # role attribute flags

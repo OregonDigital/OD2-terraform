@@ -1,0 +1,5 @@
+#!/bin/bash
+cd {{ application_root }}
+bundle exec puma -C {{ application_root }}/config/puma/{{ rails_env }}.rb 2>&1 >> {{ application_root }}/log/puma.log
+touch {{ application_root }}/log/{{ rails_env }}.log
+tail -f {{ application_root }}/log/{{ rails_env }}.log

@@ -1,0 +1,53 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "vars_file": "variables.yml"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "{{user `aws_region`}}",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "name": "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*",
+        "root-device-type": "ebs"
+      },
+      "owners": ["099720109477"],
+      "most_recent": true
+    },
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+    "ami_name": "od2-base-{{timestamp}}"
+  }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo apt-get -y update",
+        "sudo apt-get -y install software-properties-common aptitude",
+        "sudo apt-add-repository ppa:ansible/ansible",
+        "sudo apt-get -y update",
+        "sudo apt-get -y install ansible"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "variables.yml",
+      "destination": "/tmp/variables.yml"
+    },
+    {
+      "type": "ansible-local",
+      "staging_directory": "/tmp/ansible",
+      "playbook_file": "base.yml",
+      "role_paths": [
+        "roles/common"
+      ],
+      "extra_arguments": [
+        "--extra-vars \"tmp_dir=/tmp \""
+      ]
+    }
+  ]
+}

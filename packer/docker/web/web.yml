@@ -1,0 +1,8 @@
+- hosts: 127.0.0.1
+  user: root
+  vars_files:
+    - "{{tmp_dir}}/variables.yml"
+  roles:
+    - rbenv
+    - nvm
+    - app

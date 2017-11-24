@@ -1,0 +1,12 @@
+ruby_version: 2.4.1
+node_version: "v8.9.1"
+rbenv_root: "/home/ec2-user/.rbenv"
+nvm_root: "/home/ec2-user/.nvm"
+nvm_version: "v0.33.6"
+application_user: "ec2-user"
+application_root: "/data0/hydra/current"
+application_shared: "/data0/hydra/shared"
+# Passed in through --extra-vars by Packer
+#application_start: "/data0/hydra/start.sh"
+application_entrypoint: "/data0/hydra/entrypoint.sh"
+rails_env: "production"
