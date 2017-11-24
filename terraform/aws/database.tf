@@ -60,8 +60,20 @@ resource "aws_instance" "db" {
   }
 }
 
+resource "aws_route53_record" "db" {
+  zone_id = "${aws_route53_zone.prod.zone_id}"
+  name = "db.${aws_route53_zone.prod.name}"
+  type = "A"
+  ttl = "300"
+  records = ["${aws_instance.db.private_ip}"]
+}
+
 output "db_private_ip" {
   value = "${aws_instance.db.private_ip}"
+}
+
+output "db_route53_internal_hostname" {
+  value = "${aws_route53_record.db.name}"
 }
 
 output "db_security_group_id" {

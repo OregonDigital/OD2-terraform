@@ -85,10 +85,22 @@ resource "aws_eip" "web" {
   vpc = true
 }
 
+resource "aws_route53_record" "web" {
+  zone_id = "${aws_route53_zone.prod.zone_id}"
+  name = "www.${aws_route53_zone.prod.name}"
+  type = "A"
+  ttl = "300"
+  records = ["${aws_eip.web.public_ip}"]
+}
+
 output "web_public_http" {
   value = "http://${aws_eip.web.public_ip}"
 }
 
 output "web_public_ssh" {
   value = "ssh -i ${var.aws_key_path} -A ec2-user@${aws_eip.web.public_ip}"
+}
+
+output "web_route53_internal_hostname" {
+  value = "${aws_route53_record.web.name}"
 }
