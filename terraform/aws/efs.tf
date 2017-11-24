@@ -39,3 +39,7 @@ resource "aws_efs_mount_target" "efs" {
 output "efs_mount_dns_name" {
   value = "${aws_efs_mount_target.efs.dns_name}"
 }
+
+output "efs_mount_subnet_id" {
+  value = "${aws_efs_mount_target.efs.subnet_id}"
+}

@@ -1,9 +1,8 @@
 # Monit enabled for Postgres (ANXS.monit)
 monit_protection: true
 
-default_locale: 'en_US.UTF-8'
-
 # Postgres basic settings (ANXS.postgresql)
+default_locale: 'en_US.UTF-8'
 postgresql_version: 9.5
 postgresql_locale: 'en_US.UTF-8'
 postgresql_ctype: 'en_US.UTF-8'
@@ -18,6 +17,7 @@ postgresql_service_enabled: true # should the service be enabled, default is tru
 postgresql_cluster_name: "main"
 postgresql_cluster_reset: false
 
+# EFS mount point for shared data
 postgresql_varlib_directory_name: "postgresql"
 postgresql_data_directory: "/efs/{{ postgresql_varlib_directory_name }}/{{postgresql_version}}/{{postgresql_cluster_name}}"
 

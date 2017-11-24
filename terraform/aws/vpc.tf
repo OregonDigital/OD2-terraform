@@ -206,11 +206,11 @@ resource "aws_route_table_association" "us-west-2a-private" {
   route_table_id = "${aws_route_table.us-west-2a-private.id}"
 }
 
-output "nat_public_ssh" {
+output "bastion_public_ssh" {
   value = "ssh -i ${var.aws_key_path} -A ec2-user@${aws_eip.nat.public_ip}"
 }
 
-output "nat_copy_ssh_key" {
+output "bastion_copy_ssh_key" {
   value = "scp -i ${var.aws_key_path} ${var.aws_key_path} ec2-user@${aws_eip.nat.public_ip}:~/.ssh/"
 }
 
@@ -222,6 +222,6 @@ output "us_west_2a_public_subnet_id" {
   value = "${aws_subnet.us-west-2a-public.id}"
 }
 
-output "aws_security_group_packer" {
+output "aws_security_group_packer_id" {
   value = "${aws_security_group.packer_builder.id}"
 }

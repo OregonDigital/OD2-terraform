@@ -64,10 +64,6 @@ output "db_private_ip" {
   value = "${aws_instance.db.private_ip}"
 }
 
-output "db_security_group" {
+output "db_security_group_id" {
   value = "${aws_security_group.db.id}"
-}
-
-output "db_ssh_login" {
-  value = "'ssh -i ${var.aws_key_path} -A ec2-user@${aws_eip.nat.public_ip}' ... then on the NAT server run 'ssh -i ${var.aws_key_path} ec2-user@${aws_instance.db.private_ip}'"
 }

@@ -35,6 +35,7 @@
   shell: echo 'UsePAM yes' >> /etc/ssh/ssh_config
   become: true
 
+# Root user AWS credentials
 - name: Setup AWS credentials directory
   file:
     path: ~/.aws
@@ -42,6 +43,7 @@
     mode: 0755
   become: true
 
+# Root user AWS credentials
 - name: Setup AWS credentials
   template:
     src: templates/aws_credentials.j2

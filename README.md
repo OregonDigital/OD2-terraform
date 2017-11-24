@@ -34,12 +34,27 @@ $cd packer/aws/$BUILD_TYPE
 
 # Validate the build is going to work
 $packer validate -var-file ../../variables.json $BUILD_TYPE.json
-
-# Build the AMI
-$packer build -var-file ../variables.json $BUILD_TYPE.json
-
-# Wait for awhile and capture the AMI and output details after a successful build
 ```
+### Build the **base** or **web** AMI
+```
+$packer build -var-file ../../variables.json $BUILD_TYPE.json
+```
+### Build the **database** AMI (or any instance that lives on the private subnet of the VPC)
+An instance that lives on the private subnet, and having an EFS nfs mount requires several pieces of information. Remote building on the private subnet requires using the bastion on the VPC to login through the public subnet. The bastions IP, username, and private key are all necessary to tunnel the connection to the private subnet. Mounting an EFS drive requires that both the EFS drive and instance both live on the same VPC, subnet, and have compatible security groups (allowing ingress and egress of port 2049). Finally, the EFS drive dns name is necessary for creating a mount point in the build process.
+
+***All of the information necessary for this command can be found as outputs from the `terraform apply` command. (If there are no changes to the infrastructure, the command can be run and it will still show these outputs.)***
+```
+$packer build -var-file ../../variables.json \
+  -var 'aws_region=$AWS_REGION' \
+  -var 'aws_efs_mount_dns_name=$EFS_MOUNT_DNS_NAME' \
+  -var 'aws_subnet_id=$VPC_PRIVATE_SUBNET_ID' \
+  -var 'aws_security_group_id=$PACKER_SECURITY_GROUP_ID' \
+  -var 'ssh_bastion_host=$VPC_BASTION_IP' \
+  -var 'ssh_bastion_private_key_file=$SSH_PRIVATE_KEY_PATH' \
+  -var 'ssh_bastion_username=$VPC_BASTION_USERNAME'  \
+  $BUILD_TYPE.json
+```
+**Wait for awhile and capture the AMI and output details after a successful build**
 ## Terraform
 Terraform files are found in the `terraform/aws` directory.
 ### Update Terraform variables
