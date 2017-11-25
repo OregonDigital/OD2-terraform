@@ -87,10 +87,10 @@ resource "aws_eip" "web" {
 
 resource "aws_route53_record" "web" {
   zone_id = "${aws_route53_zone.prod.zone_id}"
-  name = "www.${aws_route53_zone.prod.name}"
+  name = "web.${aws_route53_zone.prod.name}"
   type = "A"
   ttl = "300"
-  records = ["${aws_eip.web.public_ip}"]
+  records = ["${aws_eip.web.private_ip}"]
 }
 
 output "web_public_http" {
