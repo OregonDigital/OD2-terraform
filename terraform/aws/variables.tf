@@ -19,7 +19,7 @@ variable "web_amis" {
 variable "db_amis" {
   description = "AMIs by region"
   default = {
-    us-west-2 = "ami-e62df19e" # Postgres db
+    us-west-2 = "ami-30ce1148" # Postgres db
   }
 }
 
