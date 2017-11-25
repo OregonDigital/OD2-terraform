@@ -5,6 +5,9 @@
     name: "{{ postgresql_service_name }}"
     state: started
 
+- name: PostgreSQL | Let the server boot
+  pause: seconds=10
+
 - name: PostgreSQL | Make sure the PostgreSQL users are present
   postgresql_user:
     name: "{{item.name}}"

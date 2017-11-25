@@ -1,43 +1,57 @@
 {
   "variables": {
-    "aws_access_key": "",
-    "aws_secret_key": ""
+    "aws_access_key": "{{ env `AWS_ACCESS_KEY` }}",
+    "aws_secret_key": "{{ env `AWS_SECRET_KEY` }}",
+    "aws_subnet_id": "Pass into Packer using (-var 'aws_subnet_id=<String>') : Subnet Id MUST BE on a public subnet for the VPC to build AMI",
+    "aws_security_group_id":
+      "Pass into Packer using (-var 'aws_security_group_id=<String>') : Group MUST HAVE ports 22 (public) and 2049 (private, EFS network)",
+    "vars_file": "variables.yml"
   },
-  "builders": [{
-    "type": "amazon-ebs",
-    "access_key": "{{user `aws_access_key`}}",
-    "secret_key": "{{user `aws_secret_key`}}",
-    "region": "us-west-2",
-    "source_ami_filter": {
-      "filters": {
-        "virtualization-type": "hvm",
-        "name": "amzn-ami-hvm-*-x86_64-gp2",
-        "root-device-type": "ebs"
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "subnet_id": "{{user `aws_subnet_id`}}",
+      "security_group_id": "{{user `aws_security_group_id`}}",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "od2-base-*",
+          "root-device-type": "ebs"
+        },
+        "owners": ["608942788372"],
+        "most_recent": true
       },
-      "owners": ["amazon"],
-      "most_recent": true
-    },
-    "instance_type": "t2.micro",
-    "ssh_username": "ubuntu",
-    "ami_name": "od2-web-{{timestamp}}"
-  }],
+      "instance_type": "t2.micro",
+      "ssh_username": "ubuntu",
+      "associate_public_ip_address": true,
+      "ami_name": "od2-web-{{timestamp}}"
+    }
+  ],
   "provisioners": [
     {
-      "type": "shell",
-      "script": "server-setup.sh"
-    },
-    {
-      "type": "shell-local",
-      "command": "tar cf files_to_upload/files.tar files"
-    },
-    {
       "type": "file",
-      "source": "./files_to_upload/files.tar",
-      "destination": "/tmp/files.tar"
+      "source": "variables.yml",
+      "destination": "/tmp/variables.yml"
     },
     {
-      "type": "shell",
-      "script": "move-files.sh"
+      "type": "ansible-local",
+      "staging_directory": "/tmp/ansible",
+      "playbook_file": "web.yml",
+      "role_paths": [
+        "roles/common",
+        "roles/efs",
+        "roles/ANXS.monit",
+        "roles/zzet.rbenv",
+        "roles/leonidas.nvm",
+        "roles/fits",
+        "roles/app"
+      ],
+      "extra_arguments": [
+        "-vvv --extra-vars \"tmp_dir=/tmp aws_access_key={{ user `aws_access_key` }} aws_secret_key={{ user `aws_secret_key` }} aws_region={{ user `aws_region` }} aws_efs_mount_dns_name={{ user `aws_efs_mount_dns_name` }}\""
+      ]
     }
   ]
 }

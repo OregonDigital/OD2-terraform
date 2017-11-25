@@ -4,3 +4,5 @@
 *variables.json
 *web/files_to_upload/*
 !*web/files_to_upload/.keep
+s3*
+!s3/.keep

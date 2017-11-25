@@ -55,26 +55,28 @@ resource "aws_security_group" "web" {
   }
 }
 
-# File must be a text/* content-type, see/update metadata for object in S3
-data "aws_s3_bucket_object" "local_env" {
-  bucket = "${var.aws_s3_bucket_name}"
-  key    = "data0/hydra/shared/config/local_env.yml"
+data "aws_ami" "web" {
+  most_recent = true
+  filter {
+    name   = "name"
+    values = ["od2-web-*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  owners = ["608942788372"] # ETS-Dev
 }
 
 resource "aws_instance" "web" {
-  ami = "${lookup(var.web_amis, var.aws_region)}"
+  ami = "${data.aws_ami.web.id}"
   instance_type = "t2.micro"
   availability_zone = "us-west-2a"
   subnet_id = "${aws_subnet.us-west-2a-public.id}"
   associate_public_ip_address = true
   source_dest_check = false
   key_name = "${var.aws_key_name}"
-  vpc_security_group_ids = ["${aws_security_group.web.id}"]
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo yum update -y
-              echo "${data.aws_s3_bucket_object.local_env.body}" >> /data0/hydra/shared/config/local_env.yml
-              EOF
+  vpc_security_group_ids = ["${aws_security_group.web.id}", "${aws_security_group.efs.id}"]
   tags {
     Name = "${var.application_name} web server"
   }
@@ -98,7 +100,7 @@ output "web_public_http" {
 }
 
 output "web_public_ssh" {
-  value = "ssh -i ${var.aws_key_path} -A ec2-user@${aws_eip.web.public_ip}"
+  value = "ssh -i ${var.aws_key_path} -A ubuntu@${aws_eip.web.public_ip}"
 }
 
 output "web_route53_internal_hostname" {

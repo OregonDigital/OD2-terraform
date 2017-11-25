@@ -1,0 +1,66 @@
+---
+- name: Wait for automatic system updates
+  become: yes
+  shell: sleep 5 && while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done;
+
+- name: Install package dependencies
+  apt:
+    pkg: '{{ item }}'
+  with_items:
+    - locales
+    - python-boto
+    - python-boto3
+    - nfs-common
+    - apt-file
+    - libpq-dev
+    - unzip
+  become: true
+
+- name: Setup en_us.utf8 locale
+  command: locale-gen en_US.UTF-8
+  become: true
+
+- name: Set default language and locale
+  template:
+    src: etc_default_locale.j2
+    dest: "/etc/default/locale"
+    mode: 0644
+  become: true
+
+- name: Enable PAM
+  shell: echo 'UsePAM yes' >> /etc/ssh/ssh_config
+  become: true
+
+# Root user AWS credentials
+- name: Setup AWS credentials directory
+  file:
+    path: ~/.aws
+    state: directory
+    mode: 0755
+  become: true
+
+# Root user AWS credentials
+- name: Setup AWS credentials
+  template:
+    src: templates/aws_credentials.j2
+    dest: ~/.aws/credentials
+    mode: 0600
+  become: true
+
+- name: Setup AWS credentials directory
+  file:
+    path: ~/.aws
+    state: directory
+    mode: 0755
+
+- name: Setup AWS credentials
+  template:
+    src: templates/aws_credentials.j2
+    dest: ~/.aws/credentials
+    mode: 0600
+
+- name: Setup gemrc
+  template:
+    src: templates/etc_gemrc.j2
+    dest: ~/.gemrc
+    mode: 0644

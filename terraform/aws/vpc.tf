@@ -27,13 +27,13 @@ resource "aws_security_group" "packer_builder" {
     from_port = 2049
     to_port = 2049
     protocol = "tcp"
-    cidr_blocks = ["${var.private_subnet_cidr}"]
+    cidr_blocks = ["${var.private_subnet_cidr}","${var.public_subnet_cidr}"]
   }
   egress {
     from_port = 2049
     to_port = 2049
     protocol = "tcp"
-    cidr_blocks = ["${var.private_subnet_cidr}"]
+    cidr_blocks = ["${var.private_subnet_cidr}","${var.public_subnet_cidr}"]
   }
   egress {
     from_port = 80

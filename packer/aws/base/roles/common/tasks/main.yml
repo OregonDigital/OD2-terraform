@@ -7,30 +7,28 @@
 - name: Install prerequisite packages that are necessary to compile applications and gems with native extensions
   apt: pkg={{ item }}
   with_items:
-    - git
     - autoconf
+    - bison
     - build-essential
     - curl
-    - git
-    - libmysqlclient-dev
-    - openssl
+    - default-jdk
     - gcc
-    - bison
-    - libssl-dev
-    - libyaml-dev
-    - libreadline6-dev
-    - zlib1g-dev
-    - libncurses5-dev
+    - git
     - libffi-dev
     - libgdbm3
     - libgdbm-dev
+    - libmysqlclient-dev
+    - libncurses5-dev
+    - libreadline6-dev
+    - libssl-dev
+    - libyaml-dev
+    - ntp
+    - openssl
+    - python-software-properties
     - sudo
-    - vim
     - sysv-rc-conf
-  become: true
-
-- name: Install python-software-properties so the apt_repository module will work properly
-  apt: pkg=python-software-properties
+    - vim
+    - zlib1g-dev
   become: true
 
 - name: Setup regular user
