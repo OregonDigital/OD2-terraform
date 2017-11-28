@@ -1,0 +1,33 @@
+- name: Download cached open office from S3
+  aws_s3:
+    bucket: od2-download-cache
+    object: Apache_OpenOffice_4.1.4_Linux_x86-64_install-deb_en-US.tar.gz
+    dest: /tmp/Apache_OpenOffice_4.1.4_Linux_x86-64_install-deb_en-US.tar.gz
+    mode: get
+
+- name: Add open office directory
+  file:
+    path: /tmp/openoffice
+    state: directory
+
+- name: Unzip open office
+  unarchive:
+    src: /tmp/Apache_OpenOffice_4.1.4_Linux_x86-64_install-deb_en-US.tar.gz
+    dest: /tmp/openoffice
+
+- name: Remove libre office
+  apt:
+    pkg: libreoffice-core
+    purge: yes
+    state: absent
+
+- name: Install openoffice
+  shell: dpkg -i *.deb
+  args:
+    chdir: /tmp/openoffice/en-US/DEBS
+  become: true
+
+- name: Add to path
+  lineinfile:
+    dest: ~/.profile
+    line: 'export PATH="/opt/openoffice4/program:$PATH"'

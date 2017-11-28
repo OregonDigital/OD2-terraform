@@ -43,6 +43,8 @@
       "role_paths": [
         "roles/common",
         "roles/efs",
+        "roles/imagemagick",
+        "roles/openoffice",
         "roles/ANXS.monit",
         "roles/zzet.rbenv",
         "roles/leonidas.nvm",
