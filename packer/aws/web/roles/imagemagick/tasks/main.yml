@@ -1,0 +1,4 @@
+- name: Install imagemagick
+  apt:
+    pkg: imagemagick
+  become: true

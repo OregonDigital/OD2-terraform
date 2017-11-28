@@ -1,6 +1,6 @@
 ---
 - name: Set RAILS_ENV
-  shell: echo 'export RAILS_ENV="production"'' >> ~/.profile
+  shell: echo 'export RAILS_ENV=production' >> ~/.profile
 
 - name: Make app shared directory
   file:

@@ -92,7 +92,7 @@ resource "aws_route53_record" "web" {
   name = "web.${aws_route53_zone.prod.name}"
   type = "A"
   ttl = "300"
-  records = ["${aws_eip.web.private_ip}"]
+  records = ["${aws_instance.web.private_ip}"]
 }
 
 output "web_public_http" {

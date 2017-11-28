@@ -14,14 +14,36 @@ $cp terraform.tfvars.example terraform.tfvars
 $cp packer/variables.json.example packer/variables.json
 ```
 
-## Release process
-- Run Packer to create a new AMI
-  - Capture the newly created AMI ID
-- Update Terraform variables
-- Run Terraform plan to confirm updates
-- Run Terraform apply to deploy
+# Release process
+- [Sync protected files to S3 bucket](#sync-protected-files-to-s3-bucket)
+- [Run Packer to create a new AMI](#run-packer-to-create-a-new-ami)
+- [Run Terraform plan to confirm updates](#run-terraform-plan-to-confirm-updates)
+- [Run Terraform apply to deploy](#run-terraform-apply-to-deploy)
 
-## Packer
+# AWS Commandline
+### Sync protected files to S3 bucket
+**Important**: The `~/.aws/credentials` must include a profile configuration for an account that has access to the S3 bucket. S3 doesn't recognize IAM accounts in this context. This example is using the `ets-dev` as a profile name for these credentials
+
+Using the S3 aws commandline, you can synchronize locally controlled protected files to the private `od2-secret-files` bucket. These files are not stored on Github for obvious security reasons, so you might first need to fetch the current files from S3 before proceeding. The directory structure as of this writing is as follows:
+```
+s3/
+  od2-secret-files/
+    app/
+      config/
+        initializers/
+          hyrax.rb
+        puma/
+          production.rb
+        local_env.yml
+```
+**Important**: Code and configuration files need to be forced to upload as `text/plain` in order for the Packer scripts to behave properly.
+
+```
+$cd s3/od2-secret-files
+$aws s3 sync . s3://od2-secret-files --profile ets-dev --content-type text/plain
+```
+
+# Packer
 ### Run Packer to create a new AMI
 Packer is used to build several different images for the infrastructure. A description of each is as follows;
 - packer/aws/**base** : Basic server build with application dependencies and user setup, all other builds should reference this as their starting AMI.
@@ -54,20 +76,17 @@ $packer build -var-file ../../variables.json \
   -var 'ssh_bastion_username=$VPC_BASTION_USERNAME'  \
   $BUILD_TYPE.json
 ```
-**Wait for awhile and capture the AMI and output details after a successful build**
-## Terraform
+# Terraform
 Terraform files are found in the `terraform/aws` directory.
-### Update Terraform variables
-Open `terraform/aws/variables.tf` and update the AMI located in either **web_amis**, or **db_amis** hash for the appropriate AWS region.
 
 ### Run Terraform plan to confirm the updates
 ```
 $terraform plan -var-file terraform.tfvars
 ```
-Confirm that Terraform produces a plan that you are expecting to happen.. likely to destroy the web instance(s) and create new instance(s).
+**Confirm that Terraform produces a plan that you are expecting to happen.. likely to destroy the web instance(s) and create new instance(s).**
 
 ### Run Terraform apply to deploy
 ```
 $terraform apply -var-file terraform.tfvars
 ```
-Confirm that the expected infrastructure was deployed and is live.
+**Confirm that the expected infrastructure was deployed and is live.**
