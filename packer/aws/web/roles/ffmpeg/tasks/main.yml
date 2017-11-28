@@ -1,0 +1,10 @@
+- name: Add repo
+  apt_repository:
+    repo: 'ppa:djcj/hybrid'
+  become: true
+
+- name: Install ffmpeg
+  apt:
+    pkg: ffmpeg
+    update_cache: yes
+

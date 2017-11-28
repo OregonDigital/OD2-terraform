@@ -1,0 +1,63 @@
+---
+- name: Set RAILS_ENV
+  shell: echo 'export RAILS_ENV="production"'' >> ~/.profile
+
+- name: Make app shared directory
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: 0755
+    recurse: true
+    owner: '{{ od2.user }}'
+    group: '{{ od2.user }}'
+  with_items: '{{ od2.shared_directories }}'
+  become: true
+
+- name: Fetch protected files from S3 Bucket
+  aws_s3:
+    bucket: '{{ od2.s3_bucket }}'
+    object: '{{ item.object }}'
+    dest: '{{ item.dest }}'
+    mode: get
+    overwrite: always
+  with_items: '{{ od2.s3_bucket_objects }}'
+
+- name: Clone OD2 repo
+  git:
+    dest: '{{ od2.app_directory }}'
+    repo: '{{ od2.git_repository }}'
+    version: '{{ od2.git_branch }}'
+
+- name: Link shared files
+  file:
+    path: '{{ item.dest }}'
+    src: '{{ item.src }}'
+    state: link
+    mode: 0755
+    force: true
+    owner: '{{ od2.user }}'
+    group: '{{ od2.user }}'
+  with_items: '{{ od2.linked_files }}'
+
+- name: Remove app shared directories
+  file:
+    path: '{{ item.dest }}'
+    state: absent
+  with_items: '{{ od2.linked_directories }}'
+
+- name: Link app shared directories
+  file:
+    path: '{{ item.dest }}'
+    src: '{{ item.src }}'
+    state: link
+    mode: 0755
+    force: true
+    owner: '{{ od2.user }}'
+    group: '{{ od2.user }}'
+  with_items: '{{ od2.linked_directories }}'
+
+- name: Install bundler
+  shell: $SHELL -lc "gem install bundler"
+
+- name: Bundle install
+  shell: $SHELL -lc "cd {{ od2.app_directory }} && bundle install"

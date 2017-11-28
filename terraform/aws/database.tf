@@ -43,18 +43,27 @@ resource "aws_security_group" "db" {
   }
 }
 
+data "aws_ami" "db" {
+  most_recent = true
+  filter {
+    name   = "name"
+    values = ["od2-database-*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  owners = ["608942788372"] # ETS-Dev
+}
+
 resource "aws_instance" "db" {
-  ami = "${lookup(var.db_amis, var.aws_region)}"
+  ami = "${data.aws_ami.db.id}"
   availability_zone = "us-west-2a"
   instance_type = "t2.micro"
   key_name = "${var.aws_key_name}"
   vpc_security_group_ids = ["${aws_security_group.db.id}", "${aws_security_group.efs.id}"]
   subnet_id = "${aws_subnet.us-west-2a-private.id}"
   source_dest_check = false
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo yum update -y
-              EOF
   tags {
     Name = "${var.application_name} database"
   }

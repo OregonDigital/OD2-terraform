@@ -1,5 +1,0 @@
-server {
-    listen 80;
-    #server_name blah;
-    return 301 https://$host$request_uri;
-}

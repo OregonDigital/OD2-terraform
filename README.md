@@ -35,11 +35,11 @@ $cd packer/aws/$BUILD_TYPE
 # Validate the build is going to work
 $packer validate -var-file ../../variables.json $BUILD_TYPE.json
 ```
-### Build the **base** or **web** AMI
+### Build the **base** AMI
 ```
 $packer build -var-file ../../variables.json $BUILD_TYPE.json
 ```
-### Build the **database** AMI (or any instance that lives on the private subnet of the VPC)
+### Build the **database** or **web** AMI (or any instance that lives on the private subnet of the VPC)
 An instance that lives on the private subnet, and having an EFS nfs mount requires several pieces of information. Remote building on the private subnet requires using the bastion on the VPC to login through the public subnet. The bastions IP, username, and private key are all necessary to tunnel the connection to the private subnet. Mounting an EFS drive requires that both the EFS drive and instance both live on the same VPC, subnet, and have compatible security groups (allowing ingress and egress of port 2049). Finally, the EFS drive dns name is necessary for creating a mount point in the build process.
 
 ***All of the information necessary for this command can be found as outputs from the `terraform apply` command. (If there are no changes to the infrastructure, the command can be run and it will still show these outputs.)***

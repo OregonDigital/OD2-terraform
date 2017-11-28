@@ -1,0 +1,29 @@
+- name: Download cached fits from S3
+  aws_s3:
+    bucket: od2-download-cache
+    object: fits-1.2.0.zip
+    dest: /tmp/fits-1.2.0.zip
+    mode: get
+
+- name: Add fits directory
+  file:
+    path: /usr/local/fits
+    state: directory
+    owner: '{{ od2.user }}'
+    group: '{{ od2.user }}'
+  become: true
+
+- name: Unzip fits
+  unarchive:
+    src: /tmp/fits-1.2.0.zip
+    dest: /usr/local/fits
+
+- name: Link fits in path
+  file:
+    path: /usr/local/bin/fits.sh
+    src: /usr/local/fits/fits-1.2.0/fits.sh
+    owner: '{{ od2.user }}'
+    group: '{{ od2.user }}'
+    mode: 0755
+    state: link
+  become: true

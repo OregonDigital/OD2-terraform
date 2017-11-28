@@ -8,7 +8,7 @@
 
 - name: Wait for automatic system updates
   become: yes
-  shell: while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 1; done;
+  shell: sleep 5 && while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done;
 
 - name: Install package dependencies
   apt:

@@ -9,20 +9,6 @@ variable "aws_region" {
   default = "us-west-2"
 }
 
-variable "web_amis" {
-  description = "AMIs by region"
-  default = {
-    us-west-2 = "ami-f1459689" # OD2 Web
-  }
-}
-
-variable "db_amis" {
-  description = "AMIs by region"
-  default = {
-    us-west-2 = "ami-e62df19e" # Postgres db
-  }
-}
-
 variable "vpc_amis" {
   description = "VPC AMIs by region"
   default = {

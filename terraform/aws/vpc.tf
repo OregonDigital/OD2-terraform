@@ -27,13 +27,13 @@ resource "aws_security_group" "packer_builder" {
     from_port = 2049
     to_port = 2049
     protocol = "tcp"
-    cidr_blocks = ["${var.private_subnet_cidr}"]
+    cidr_blocks = ["${var.private_subnet_cidr}","${var.public_subnet_cidr}"]
   }
   egress {
     from_port = 2049
     to_port = 2049
     protocol = "tcp"
-    cidr_blocks = ["${var.private_subnet_cidr}"]
+    cidr_blocks = ["${var.private_subnet_cidr}","${var.public_subnet_cidr}"]
   }
   egress {
     from_port = 80
@@ -214,14 +214,14 @@ output "bastion_copy_ssh_key" {
   value = "scp -i ${var.aws_key_path} ${var.aws_key_path} ec2-user@${aws_eip.nat.public_ip}:~/.ssh/"
 }
 
-output "us_west_2a_private_subnet_id" {
+output "subnet_us_west_2a_private_id" {
   value = "${aws_subnet.us-west-2a-private.id}"
 }
 
-output "us_west_2a_public_subnet_id" {
+output "subnet_us_west_2a_public_id" {
   value = "${aws_subnet.us-west-2a-public.id}"
 }
 
-output "aws_security_group_packer_id" {
+output "security_group_packer_id" {
   value = "${aws_security_group.packer_builder.id}"
 }

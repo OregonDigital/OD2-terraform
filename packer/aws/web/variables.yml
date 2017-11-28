@@ -1,0 +1,52 @@
+default_locale: 'en_US.UTF-8'
+
+rbenv:
+  env: user
+  version: v1.1.1
+  default_ruby: 2.4.2
+  rubies:
+    - version: 2.4.2
+rbenv_users: ['ubuntu']
+
+nvm:
+  user: ubuntu
+  version: 'v0.33.6'
+  node_version: '8.9.1'
+
+od2:
+  user: ubuntu
+  rails_env: production
+  git_repository: http://github.com/OregonDigital/OD2
+  git_branch: master
+  app_directory: ~/app
+  shared_directory: /efs/data0/rails/shared
+  shared_directories:
+    - '/efs/data0/rails/shared/tmp/puma'
+    - '/efs/data0/rails/shared/config/initializers'
+    - '/efs/data0/rails/shared/log'
+  linked_directories:
+    - src: '/efs/data0/rails/shared/tmp'
+      dest: '~/app/tmp'
+    - src: '/efs/data0/rails/shared/log'
+      dest: '~/app/log'
+    - src: '/efs/data0/rails/shared/config/puma'
+      dest: '~/app/config/puma'
+  linked_files:
+    - src: '/efs/data0/rails/shared/config/local_env.yml'
+      dest: '~/app/config/local_env.yml'
+    - src: '/efs/data0/rails/shared/config/initializers/hyrax.rb'
+      dest: '~/app/config/initializers/hyrax.rb'
+  s3_bucket: od2-secret-files
+  s3_bucket_objects:
+    - object: /app/config/local_env.yml
+      dest: '/efs/data0/rails/shared/config/local_env.yml'
+    - object: /app/config/initializers/hyrax.rb
+      dest: '/efs/data0/rails/shared/config/initializers/hyrax.rb'
+    - object: /app/config/puma/production.rb
+      dest: '/efs/data0/rails/shared/config/puma/production.rb'
+
+monit_process_list:
+  - pid: '~/app/tmp/puma/puma.pid'
+    process: 'puma'
+    start: cd ~/app && bundle exec puma -C config/{{ od2.rails_env }}.rb 2>&1 >> log/puma.log
+    stop: cd ~/app && rbenv exec pumactl --state tmp/puma/puma.state phased-restart 2>&1 >> log/puma.log
